@@ -600,3 +600,223 @@ Claude will write a title and description summarizing the changes.
 | `/rewind` | Rewind conversation and code to a previous state |
 
 </details>
+
+---
+
+## Station 6: "The Kitchen Timer" — Hooks & SDK
+
+> *Timers buzz when something needs attention. Hooks automate repetitive behaviors.*
+
+### What are hooks?
+
+Hooks are shell commands that run automatically when Claude Code does something — like kitchen timers that buzz at the right moment. They let you automate repetitive checks.
+
+**Example:** Every time Claude edits a file, automatically run your tests. Every time Claude is about to delete a file, show a warning.
+
+### Hook events (when do timers go off?)
+
+| Event | When it fires | Example use |
+|-------|-------------|-------------|
+| `PreToolUse` | Before Claude uses a tool | Block dangerous commands, warn before deletions |
+| `PostToolUse` | After Claude uses a tool | Run tests after file edits, log activity |
+| `UserPromptSubmit` | When you hit Enter on a prompt | Validate or transform your input |
+| `Notification` | When Claude sends a notification | Handle permission prompts, alerts |
+| `SessionStart` | When a session begins | Load environment, set context |
+| `Stop` | When Claude finishes responding | Run post-response checks |
+| `SubagentStart` / `SubagentStop` | When sub-agents launch/finish | Restrict capabilities, process results |
+
+### Setting up a hook
+
+Hooks live in your settings file. Here's how to add one:
+
+**Method 1: Ask Claude Code**
+```
+Set up a hook that runs "node --test test/" after any file is written
+```
+
+**Method 2: Edit settings manually**
+
+In `.claude/settings.json`:
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node --test test/ 2>&1 | tail -5"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**JS concept — JSON (JavaScript Object Notation):**
+JSON is a text format for storing structured data. It looks like JavaScript objects but stricter — keys must be in double quotes, no trailing commas. Settings files use JSON because it's easy for both humans and programs to read.
+
+### Hook types
+
+| Type | What it does |
+|------|-------------|
+| `command` | Runs a shell script, receives JSON input via stdin |
+| `prompt` | Asks Claude a yes/no question to decide whether to proceed |
+
+### Gotchas
+
+- **Hooks run as YOU, not as Claude.** They have your full permissions. Be careful with what they do.
+- **Slow hooks block Claude.** If a hook takes 30 seconds, Claude waits 30 seconds. Keep them fast.
+- **Hooks can block actions.** A `PreToolUse` hook that exits with a non-zero code blocks the tool. Use this for safety gates, but be careful not to block yourself.
+- **Test your hooks.** A buggy hook can make Claude Code unusable. Start simple.
+
+### Claude Code SDK (the bakery equipment catalog)
+
+The SDK lets you use Claude programmatically — like buying bakery equipment to build into your own kitchen, rather than relying on the sous-chef.
+
+A basic SDK example in Node.js:
+
+```javascript
+// sdk-example.js
+// Install first: npm install @anthropic-ai/claude-code
+const { claude } = require('@anthropic-ai/claude-code');
+
+async function main() {
+  // Send a prompt and get a response
+  const response = await claude({
+    prompt: 'What is 2 + 2?',
+    options: {
+      maxTurns: 1
+    }
+  });
+
+  console.log(response);
+}
+
+main();
+```
+
+**When to use the SDK:**
+- Automating repetitive Claude tasks in scripts
+- Building custom tools that use Claude under the hood
+- Integrating Claude into CI/CD pipelines
+
+### Feature reference: Station 6
+
+<details>
+<summary>Hook events (complete list)</summary>
+
+| Event | Description |
+|-------|-------------|
+| `SessionStart` | Session begins |
+| `UserPromptSubmit` | User submits a prompt |
+| `PreToolUse` | Before a tool runs (can block it) |
+| `PostToolUse` | After a tool succeeds |
+| `PostToolUseFailure` | After a tool fails |
+| `Notification` | Notification triggers |
+| `SubagentStart` | Sub-agent spawned |
+| `SubagentStop` | Sub-agent finishes |
+| `Stop` | Claude finishes responding |
+| `PreCompact` / `PostCompact` | Before/after context compaction |
+| `SessionEnd` | Session ends |
+
+</details>
+
+<details>
+<summary>Hook management commands</summary>
+
+| Command | What it does |
+|---------|-------------|
+| `/hooks` | View all configured hooks |
+| `/update-config` | Ask Claude to modify settings.json |
+| "Add a hook that..." | Natural language hook setup |
+
+</details>
+
+---
+
+## Station 7: "The Spice Rack" — MCP Servers
+
+> *Specialty spice imports that extend your kitchen's capabilities.*
+
+### What are MCP servers?
+
+MCP (Model Context Protocol) servers are external tools that plug into Claude Code — like importing specialty spices from around the world. They give Claude abilities it doesn't have built in.
+
+**Built-in tools** can read files, run commands, and search code. But what if you need Claude to:
+- Query a database?
+- Read your Figma designs?
+- Access your Gmail?
+- Interact with a specific API?
+
+That's what MCP servers are for. Each one adds new "tools" that Claude can use.
+
+### When are MCP servers worth it?
+
+| Use an MCP server when... | Don't bother when... |
+|---|---|
+| You need to access an external service regularly | You can copy-paste data into Claude manually |
+| The integration saves significant time | You only need it once |
+| A well-maintained server exists | You'd need to build one from scratch for a minor convenience |
+
+### Connecting an MCP server
+
+**Method 1: Through the Claude Code command**
+```
+/mcp
+```
+This opens the MCP management interface where you can add, remove, and configure servers.
+
+**Method 2: Through configuration**
+
+In `.mcp.json` (project root):
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/mcp-filesystem"],
+      "env": {}
+    }
+  }
+}
+```
+
+### Popular MCP servers
+
+| Server | What it adds |
+|--------|-------------|
+| Figma | Read designs, get design context |
+| Gmail | Read and search emails |
+| GitHub (via `gh` CLI) | Already built into Claude Code via Bash |
+| Filesystem | Extended file operations |
+| Notion | Access Notion databases |
+| Slack | Read Slack messages |
+| Custom servers | Build your own for any API |
+
+### Using MCP tools in conversation
+
+Once connected, MCP tools appear alongside Claude's built-in tools. You don't need to reference them specially — just ask for what you need:
+
+```
+What does the design in this Figma file look like?
+[paste Figma URL]
+```
+
+Claude will automatically use the Figma MCP tools if they're connected.
+
+### Feature reference: Station 7
+
+<details>
+<summary>MCP commands</summary>
+
+| Command | What it does |
+|---------|-------------|
+| `/mcp` | Manage MCP server connections |
+| MCP tools appear in tool list | Use normally once connected |
+| `.mcp.json` | Project-level MCP configuration |
+| `settings.json` → `mcpServers` | User-level MCP configuration |
+
+</details>
