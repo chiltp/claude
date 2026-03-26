@@ -441,3 +441,162 @@ module.exports = myFunction;
 | `\` + `Enter` | Multi-line input |
 
 </details>
+
+---
+
+## Station 4: "The Tasting Counter" — Testing & Review
+
+> *No bakery ships without tasting. Verify before committing.*
+
+### Why test with Claude Code?
+
+Claude Code writes code confidently — but confidence isn't correctness. Like a baker who thinks the soufflé is done because it looks right, Claude's code might have bugs that only show up when you actually run it.
+
+The tasting counter is where you catch problems before they reach customers.
+
+### Writing tests
+
+Ask Claude to write tests for your code:
+
+```
+Write tests for the /stats and /logs endpoints using Node's built-in test runner (node:test and node:assert). No external test frameworks.
+```
+
+**JS concept — Node.js built-in test runner:**
+
+```javascript
+// test/server.test.js
+const { describe, it } = require('node:test');  // Built-in test module (Node 18+)
+const assert = require('node:assert');           // Built-in assertion module
+
+describe('stats endpoint', () => {
+  it('should return request counts', () => {
+    const result = getStats();
+    assert.strictEqual(typeof result, 'object');
+  });
+});
+```
+
+Run tests with: `node --test test/`
+
+`node:test` and `node:assert` are built into Node.js — no need to install anything. `describe` groups related tests. `it` defines a single test. `assert` checks if things are correct.
+
+### The review-fix-verify loop
+
+This is your quality cycle:
+
+1. **Review** — ask Claude to check the code: "Review the changes we've made" or use the review plugin
+2. **Fix** — address any issues Claude finds
+3. **Verify** — run tests again to make sure the fixes didn't break anything
+
+```
+You: Review the /logs endpoint for edge cases
+Claude: [identifies: what if there are no logs yet? what if the request body is malformed?]
+You: Good catches. Fix those.
+Claude: [adds checks]
+You: Run the tests again
+Claude: [runs tests — all pass]
+```
+
+### Asking for edge cases
+
+Claude is good at finding edge cases you might miss:
+
+```
+What edge cases should I handle for the /logs endpoint? Think about:
+- Empty states
+- Invalid input
+- Memory limits
+- Concurrent requests
+```
+
+### Feature reference: Station 4
+
+<details>
+<summary>Testing commands</summary>
+
+| Command | What it does |
+|---------|-------------|
+| `node --test test/` | Run all tests in the test directory |
+| `node --test --watch test/` | Re-run tests when files change |
+| `/review` | Review recent changes (via plugin) |
+| `/security-review` | Check for security vulnerabilities |
+
+</details>
+
+---
+
+## Station 5: "The Display Window" — Committing & Shipping
+
+> *Finished pastries go in the window. Ship your verified work.*
+
+### The git workflow with Claude Code
+
+Git is how developers save and share their work — like boxing up pastries and putting them in the display window. Claude Code handles most of the git ceremony for you.
+
+**JS concept — git basics (if you're new):**
+- **commit** = save a snapshot of your changes with a message
+- **branch** = a separate line of work (like a separate prep table)
+- **PR (pull request)** = asking teammates to review your changes before merging
+
+### Committing with Claude Code
+
+The simplest way: just ask Claude.
+
+```
+Commit these changes with a good message
+```
+
+Claude will:
+1. Check what's changed (`git diff`)
+2. Write a descriptive commit message
+3. Create the commit (with your approval)
+
+Or use the `/commit` slash command for a streamlined flow.
+
+### Branching
+
+For bigger features, work on a branch:
+
+```
+Create a new branch called "add-stats-endpoint" and switch to it
+```
+
+Or if you want Claude to just do the git operations:
+
+```
+I'm done with the stats feature. Create a branch, commit everything, and show me what would go in a PR.
+```
+
+### Pull requests
+
+If your project has a GitHub remote, Claude can create PRs:
+
+```
+Create a pull request for this branch with a good description
+```
+
+Claude will write a title and description summarizing the changes.
+
+### The full shipping cycle
+
+1. Create a branch (or work on main for learning)
+2. Build and test (Stations 3-4)
+3. Review changes: `/diff` to see what's changed
+4. Commit: ask Claude or use `/commit`
+5. Push and PR (if working with a remote)
+
+### Feature reference: Station 5
+
+<details>
+<summary>Git commands</summary>
+
+| Command/Feature | What it does |
+|---------|-------------|
+| `/diff` | Interactive diff viewer |
+| "Commit these changes" | Ask Claude to commit |
+| `/branch [name]` | Create a conversation branch |
+| `--worktree` / `-w` | Start in an isolated git worktree |
+| `/rewind` | Rewind conversation and code to a previous state |
+
+</details>
