@@ -255,3 +255,189 @@ In VS Code, you can right-click a file in the explorer and select "Add to Claude
 | `.claudeignore` | Exclude files from Claude's view (like .gitignore) |
 
 </details>
+
+---
+
+## Station 2: "The Proving Drawer" — Planning & Design
+
+> *You don't throw dough in the oven immediately — you let it prove. Think before coding.*
+
+### Why plan first?
+
+When you ask Claude Code to "just build it," it picks the first reasonable approach and runs with it. Sometimes that's fine. But for anything non-trivial, you get better results by thinking together first.
+
+Planning is the highest-leverage Claude Code skill. It's the difference between a baker who dumps ingredients in a bowl vs. one who reads the recipe, checks what's in the pantry, and thinks about timing.
+
+### Plan mode
+
+Plan mode makes Claude Code read-only — it can explore and think, but not edit files. This is useful when you want to discuss an approach before committing to it.
+
+**How to enter plan mode:**
+- Type `/plan` followed by your question
+- Or press `Shift+Tab` until you see "plan" mode
+- Or type: "Let's plan this before building — don't write code yet"
+
+**How to exit:**
+- Claude presents its plan and offers options: auto mode, accept edits, or review each change
+- Or press `Shift+Tab` to switch to a different mode
+
+### When to plan vs. when to just build
+
+| Just build it | Plan first |
+|---|---|
+| One-line fix | New feature spanning multiple files |
+| Rename a variable | Architecture decisions |
+| Add a simple log statement | Anything you'd think about for 2+ minutes |
+| Copy an existing pattern | Unfamiliar part of the codebase |
+
+### How to plan effectively
+
+**Bad planning prompt:**
+```
+Plan how to add a stats endpoint
+```
+
+**Good planning prompt:**
+```
+I want to add a /stats endpoint that returns request counts per route.
+Before building, let's discuss:
+- Where should we store the count data?
+- Should it persist across restarts or be in-memory only?
+- What should the response format look like?
+```
+
+The more specific your questions, the more useful the plan.
+
+### Feature reference: Station 2
+
+<details>
+<summary>Plan mode commands</summary>
+
+| Command/Shortcut | What it does |
+|---------|-------------|
+| `/plan [description]` | Enter plan mode with optional topic |
+| `Shift+Tab` | Cycle modes (default → acceptEdits → plan → auto) |
+| `/effort high` or `/effort max` | Make Claude think harder (slower but better for complex planning) |
+| `Option+T` (Mac) | Toggle extended thinking mode |
+
+</details>
+
+---
+
+## Station 3: "The Main Oven" — Building Features & Fixing Bugs
+
+> *Set the temperature (your prompt), put the dough in (let Claude work), check if it's done (review output).*
+
+### The build loop
+
+Most of your time with Claude Code follows this cycle:
+
+1. **You prompt** — describe what you want
+2. **Claude works** — reads files, writes code, runs commands
+3. **You review** — check the output, accept or redirect
+4. **Repeat** — refine until it's right
+
+### Writing effective prompts
+
+Prompts are like recipes — the more specific, the better the result.
+
+**Vague (underbaked):**
+```
+Add logging
+```
+
+**Specific (perfectly baked):**
+```
+Add a /logs endpoint that:
+- Stores the last 50 requests in memory (method, path, timestamp)
+- Returns them as a JSON array, newest first
+- Don't use any external dependencies
+```
+
+**Prompt tips:**
+- State what you want, not how to do it (let Claude choose the approach)
+- Include constraints ("no external deps," "use existing patterns")
+- Mention files if relevant ("modify src/handlers.js")
+- Say what "done" looks like ("should return JSON with these fields")
+
+### Multi-turn refinement
+
+You don't have to get the prompt perfect on the first try. Claude Code remembers the conversation:
+
+```
+You: Add a /logs endpoint that stores recent requests
+Claude: [writes code]
+You: That's close, but I want it to cap at 50 entries, not 100
+Claude: [updates code]
+You: Also format the timestamps as ISO strings
+Claude: [updates code]
+```
+
+Each turn builds on the last. This is like adjusting seasoning as you taste.
+
+### When to push back
+
+Claude Code is confident. Sometimes too confident. Push back when:
+- The approach feels overcomplicated for what you asked
+- It added things you didn't request (extra error handling, logging, comments)
+- It changed files you didn't expect
+- Something doesn't feel right (trust your instincts)
+
+Say things like:
+- "That's more complex than I need. Simpler please."
+- "Why did you change server.js? I only asked about handlers.js."
+- "Undo that last change and try a different approach."
+
+### Sub-agents
+
+For bigger tasks, Claude Code can spawn **sub-agents** — apprentice bakers who work on a specific subtask with their own focus. You don't need to manage this manually; Claude decides when to delegate. But you can suggest it:
+
+```
+This has two independent parts — the data store and the endpoint. Can you work on them separately?
+```
+
+### JS concept — CommonJS modules
+
+You'll see this pattern in Node.js code:
+
+```javascript
+// Importing (like getting ingredients from the pantry)
+const http = require('http');           // Built-in Node.js module
+const { handler } = require('./handlers'); // Your own file
+
+// Exporting (like putting finished dishes on the pass)
+module.exports = { myFunction };
+// or
+module.exports = myFunction;
+```
+
+`require()` loads code from another file. `module.exports` makes code available to other files. This is called **CommonJS** — the original Node.js module system.
+
+### Feature reference: Station 3
+
+<details>
+<summary>Key slash commands for building</summary>
+
+| Command | What it does |
+|---------|-------------|
+| `/diff` | Show uncommitted changes and per-turn diffs |
+| `/cost` | Check how much this session has cost |
+| `/compact` | Free up context space during long sessions |
+| `/clear` | Start a fresh conversation (keeps files) |
+| `/effort [level]` | Adjust reasoning depth (low/medium/high/max) |
+| `/fast` | Toggle faster responses |
+
+</details>
+
+<details>
+<summary>Useful shortcuts while building</summary>
+
+| Shortcut | What it does |
+|----------|-------------|
+| `Ctrl+C` | Stop Claude mid-generation |
+| `Esc` + `Esc` | Undo Claude's changes (rewind) |
+| `Ctrl+B` | Send a running task to background |
+| `Shift+Tab` | Switch permission mode |
+| `\` + `Enter` | Multi-line input |
+
+</details>
