@@ -72,6 +72,8 @@ Review all the code we've written in this project. Are there any bugs, code smel
 
 Claude will go through the codebase and list issues. Don't fix everything — just the actual bugs and anything that would cause problems.
 
+**Alternative:** Try `/review` for a more structured review format.
+
 ### Step 4: Hunt for edge cases
 
 ```
